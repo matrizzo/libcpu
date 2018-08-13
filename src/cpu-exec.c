@@ -171,6 +171,12 @@ static void cpu_handle_debug_exception(CPUArchState *env) {
     }
 }
 
+static void cpu_handle_int3(CPUArchState *env) {
+    if (debug_excp_handler) {
+        debug_excp_handler(env);
+    }
+}
+
 /*****************************************************************/
 
 /* main execution loop */
@@ -225,7 +231,7 @@ static uintptr_t fetch_and_run_tb(uintptr_t prev_tb, CPUArchState *env) {
     assert(env->eip == env->precise_eip);
 #endif
 
-/* execute the generated code */
+    /* execute the generated code */
 
 #if defined(CONFIG_SYMBEX)
     env->se_current_tb = tb;
@@ -359,6 +365,9 @@ static int process_exceptions(CPUArchState *env) {
         if (ret == EXCP_DEBUG) {
             cpu_handle_debug_exception(env);
         }
+    } else if (env->exception_index == 3) {
+        ret = env->exception_index;
+        cpu_handle_int3(env);
     } else {
         do_interrupt(env);
         env->exception_index = -1;
