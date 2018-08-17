@@ -40,6 +40,7 @@ const int has_llvm_engine = 1;
 int generate_llvm = 0;
 
 int tb_invalidated_flag;
+extern int guest_debug_catch_int3;
 
 struct cpu_stats_t g_cpu_stats;
 
@@ -365,7 +366,7 @@ static int process_exceptions(CPUArchState *env) {
         if (ret == EXCP_DEBUG) {
             cpu_handle_debug_exception(env);
         }
-    } else if (env->exception_index == 3) {
+    } else if (env->exception_index == 3 && guest_debug_catch_int3) {
         ret = env->exception_index;
         cpu_handle_int3(env);
     } else {
