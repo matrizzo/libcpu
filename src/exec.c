@@ -83,7 +83,8 @@ void cpu_exec_init(CPUArchState *env) {
     }
     env->cpu_index = cpu_index;
     env->numa_node = 0;
-    QTAILQ_INIT(&env->breakpoints);
+    //QTAILQ_INIT(&env->breakpoints);
+    cpu_breakpoints_init();
     QTAILQ_INIT(&env->watchpoints);
     *penv = env;
 }

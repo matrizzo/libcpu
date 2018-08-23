@@ -84,6 +84,8 @@ static uint8_t gen_opc_cc_op[OPC_BUF_SIZE];
 static int x86_64_hregs;
 #endif
 
+extern QTAILQ_HEAD(breakpoints_head, CPUBreakpoint) breakpoints;
+
 typedef struct DisasContext {
     /* current insn context */
     int override; /* -1 if no override */
@@ -7790,8 +7792,8 @@ static inline void gen_intermediate_code_internal(CPUX86State *env, TranslationB
 #endif
 
     for (;;) {
-        if (unlikely(!QTAILQ_EMPTY(&env->breakpoints))) {
-            QTAILQ_FOREACH (bp, &env->breakpoints, entry) {
+        if (unlikely(!QTAILQ_EMPTY(&breakpoints))) {
+            QTAILQ_FOREACH (bp, &breakpoints, entry) {
                 if (bp->pc == pc_ptr && !((bp->flags & BP_CPU) && (tb->flags & HF_RF_MASK))) {
                     gen_debug(dc, pc_ptr - dc->cs_base);
                     break;

@@ -24,6 +24,8 @@
 #include "osdep.h"
 #include "qemu-common.h"
 
+QTAILQ_HEAD(breakpoints_head, CPUBreakpoint) breakpoints;
+
 #if defined(TARGET_HAS_ICE)
 static void breakpoint_invalidate(CPUArchState *env, target_ulong pc) {
     target_phys_addr_t addr;
@@ -39,6 +41,10 @@ static void breakpoint_invalidate(CPUArchState *env, target_ulong pc) {
     tb_invalidate_phys_page_range(ram_addr, ram_addr + 1, 0);
 }
 #endif /* TARGET_HAS_ICE */
+
+void cpu_breakpoints_init(void) {
+    QTAILQ_INIT(&breakpoints);
+}
 
 /* Add a watchpoint.  */
 int cpu_watchpoint_insert(CPUArchState *env, target_ulong addr, target_ulong len, int flags,
@@ -116,9 +122,9 @@ int cpu_breakpoint_insert(CPUArchState *env, target_ulong pc, int flags, CPUBrea
 
     /* keep all GDB-injected breakpoints in front */
     if (flags & BP_GDB)
-        QTAILQ_INSERT_HEAD(&env->breakpoints, bp, entry);
+        QTAILQ_INSERT_HEAD(&breakpoints, bp, entry);
     else
-        QTAILQ_INSERT_TAIL(&env->breakpoints, bp, entry);
+        QTAILQ_INSERT_TAIL(&breakpoints, bp, entry);
 
     breakpoint_invalidate(env, pc);
 
@@ -135,7 +141,7 @@ int cpu_breakpoint_remove(CPUArchState *env, target_ulong pc, int flags) {
 #if defined(TARGET_HAS_ICE)
     CPUBreakpoint *bp;
 
-    QTAILQ_FOREACH (bp, &env->breakpoints, entry) {
+    QTAILQ_FOREACH (bp, &breakpoints, entry) {
         if (bp->pc == pc && bp->flags == flags) {
             cpu_breakpoint_remove_by_ref(env, bp);
             return 0;
@@ -150,7 +156,7 @@ int cpu_breakpoint_remove(CPUArchState *env, target_ulong pc, int flags) {
 /* Remove a specific breakpoint by reference.  */
 void cpu_breakpoint_remove_by_ref(CPUArchState *env, CPUBreakpoint *breakpoint) {
 #if defined(TARGET_HAS_ICE)
-    QTAILQ_REMOVE(&env->breakpoints, breakpoint, entry);
+    QTAILQ_REMOVE(&breakpoints, breakpoint, entry);
 
     breakpoint_invalidate(env, breakpoint->pc);
 
@@ -163,7 +169,7 @@ void cpu_breakpoint_remove_all(CPUArchState *env, int mask) {
 #if defined(TARGET_HAS_ICE)
     CPUBreakpoint *bp, *next;
 
-    QTAILQ_FOREACH_SAFE(bp, &env->breakpoints, entry, next) {
+    QTAILQ_FOREACH_SAFE(bp, &breakpoints, entry, next) {
         if (bp->flags & mask)
             cpu_breakpoint_remove_by_ref(env, bp);
     }

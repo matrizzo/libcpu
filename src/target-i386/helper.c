@@ -20,6 +20,8 @@
 
 #include "cpu.h"
 
+extern QTAILQ_HEAD(breakpoints_head, CPUBreakpoint) breakpoints;
+
 ///
 /// \brief cpu_compute_hflags gathers info scattered across different
 /// cpu registers into the hflags register.
@@ -113,7 +115,9 @@ void cpu_state_reset(CPUX86State *env) {
         log_cpu_state(env, X86_DUMP_FPU | X86_DUMP_CCOP);
     }
 
-    memset(env, 0, offsetof(CPUX86State, breakpoints));
+    //memset(env, 0, offsetof(CPUX86State, breakpoints));
+    memset(env, 0, offsetof(CPUX86State, singlestep_enabled));
+
 
     tlb_flush(env, 1);
 
@@ -951,7 +955,7 @@ static void breakpoint_handler(CPUX86State *env) {
                 cpu_resume_from_signal(env, NULL);
         }
     } else {
-        QTAILQ_FOREACH (bp, &env->breakpoints, entry)
+        QTAILQ_FOREACH (bp, &breakpoints, entry)
             if (bp->pc == env->eip) {
                 if (bp->flags & BP_CPU) {
                     check_hw_breakpoints(env, 1);

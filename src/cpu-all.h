@@ -339,6 +339,8 @@ void cpu_reset_interrupt(CPUArchState *env, int mask);
 #define BP_GDB 0x10
 #define BP_CPU 0x20
 
+
+void cpu_breakpoints_init(void);
 int cpu_breakpoint_insert(CPUArchState *env, target_ulong pc, int flags, CPUBreakpoint **breakpoint);
 int cpu_breakpoint_remove(CPUArchState *env, target_ulong pc, int flags);
 void cpu_breakpoint_remove_by_ref(CPUArchState *env, CPUBreakpoint *breakpoint);
