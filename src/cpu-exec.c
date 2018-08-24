@@ -41,6 +41,7 @@ int generate_llvm = 0;
 
 int tb_invalidated_flag;
 extern int guest_debug_catch_int3;
+extern int singlestep_enabled;
 
 struct cpu_stats_t g_cpu_stats;
 
@@ -274,7 +275,7 @@ static bool process_interrupt_request(CPUArchState *env) {
     DPRINTF("  process_interrupt intrq=%#x mflags=%#lx hf1=%#x hf2=%#x\n", interrupt_request, (uint64_t) env->mflags,
             env->hflags, env->hflags2);
 
-    if (unlikely(env->singlestep_enabled & SSTEP_NOIRQ)) {
+    if (unlikely(singlestep_enabled & SSTEP_NOIRQ)) {
         /* Mask out external interrupts for this step. */
         interrupt_request &= ~CPU_INTERRUPT_SSTEP_MASK;
     }

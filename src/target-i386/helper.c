@@ -116,7 +116,7 @@ void cpu_state_reset(CPUX86State *env) {
     }
 
     //memset(env, 0, offsetof(CPUX86State, breakpoints));
-    memset(env, 0, offsetof(CPUX86State, singlestep_enabled));
+    memset(env, 0, offsetof(CPUX86State, watchpoints));
 
 
     tlb_flush(env, 1);

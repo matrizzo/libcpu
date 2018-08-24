@@ -25,6 +25,7 @@
 #include "qemu-common.h"
 
 QTAILQ_HEAD(breakpoints_head, CPUBreakpoint) breakpoints;
+int singlestep_enabled;
 
 #if defined(TARGET_HAS_ICE)
 static void breakpoint_invalidate(CPUArchState *env, target_ulong pc) {
@@ -180,8 +181,8 @@ void cpu_breakpoint_remove_all(CPUArchState *env, int mask) {
    CPU loop after each instruction */
 void cpu_single_step(CPUArchState *env, int enabled) {
 #if defined(TARGET_HAS_ICE)
-    if (env->singlestep_enabled != enabled) {
-        env->singlestep_enabled = enabled;
+    if (singlestep_enabled != enabled) {
+        singlestep_enabled = enabled;
 
         /* must flush all the translated code to avoid inconsistencies */
         /* XXX: only flush what is necessary */
